@@ -1,7 +1,10 @@
 #!/usr/bin/env python3
 
 import usb1
+import random
 import sys
+
+from time import sleep
 # import struct
 
 
@@ -41,8 +44,8 @@ class USB():
 
     def test(self, data):
         with self.handle.claimInterface(2):
-            # self.handle.bulkRead(0x83, 64)
             self.handle.bulkWrite(0x02, b'\x01', 5000)
+
 
 
 def main(argv):
@@ -75,7 +78,10 @@ def main(argv):
     elif argv[0] == 'set':
         print("setting")
         with usb.handle.claimInterface(2):
-            usb.handle.bulkWrite(0x02, b'\x01', 5000)
+            a = bytearray(random.getrandbits(8) for _ in range(17))
+            usb.handle.bulkWrite(0x02, a, 5000)
+            data = usb.handle.bulkRead(0x83, 64, 0)
+            print("data ::", data)
         return 0
 
 

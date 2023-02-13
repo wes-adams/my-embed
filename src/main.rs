@@ -8,6 +8,7 @@ use rp_pico::entry;
 use rp_pico::hal;
 use rp_pico::hal::pac;
 use rp_pico::hal::prelude::*;
+// use rtt_target::rprint;
 use usb_device::class_prelude::*;
 use usb_device::descriptor;
 use usb_device::device::{UsbDevice, UsbDeviceBuilder, UsbVidPid};
@@ -82,14 +83,20 @@ fn main() -> ! {
             test.poll(&mut producer);
 
             if consumer.peek() != None {
-                let mut d = consumer.dequeue().unwrap();
-                if d.pop().unwrap() == 1 {
-                    let tmp = [0x01, 0x02, 0x03];
-                    test.write_bulk_in(&tmp, tmp.len());
+                let d = consumer.dequeue().unwrap();
+                let mut response: Vec<u8, 64> = Vec::new();
+                for x in d {
+                    if x <= 0xff - 10 {
+                        response.push(x + 10).unwrap();
+                    } else {
+                        response.push(x).unwrap();
+                    }
                 }
+                test.write_bulk_in(&response, response.len());
             }
 
             match test.cdc_acm_class.read_packet(&mut data) {
+                //test.cdc_acm_class.write_packet();
                 Err(_e) => {
                     // Do nothing
                 }
